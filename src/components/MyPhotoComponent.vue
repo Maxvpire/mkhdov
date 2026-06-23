@@ -94,34 +94,23 @@ class Particle {
       this.opacity += 0.02;
     }
 
+    // --- MOUSE INTERACTION ---
     if (mouse.active) {
       const dx = mouse.x - this.x;
       const dy = mouse.y - this.y;
-
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance < mouse.radius) {
-        const force =
-          (mouse.radius - distance) / mouse.radius;
-
+        const force = (mouse.radius - distance) / mouse.radius;
         const angle = Math.atan2(dy, dx);
-
-        this.vx -=
-          Math.cos(angle) *
-          force *
-          this.density *
-          0.4;
-
-        this.vy -=
-          Math.sin(angle) *
-          force *
-          this.density *
-          0.4;
+        this.vx -= Math.cos(angle) * force * this.density * 0.4;
+        this.vy -= Math.sin(angle) * force * this.density * 0.4;
       }
     }
 
+    // --- ALWAYS APPLY SPRING FORCE ---
+    // This ensures they return to their base position even without mouse input
     const spring = 0.04;
-
     this.vx += (this.baseX - this.x) * spring;
     this.vy += (this.baseY - this.y) * spring;
 
@@ -208,21 +197,27 @@ async function initParticles() {
   const { w, h } = getContainerSize();
 
   const compactLayout = w <= 640 || h <= 360;
+
+  const PORTRAIT_OFFSET_Y = -160;        // desktop — higher = move up
+  const PORTRAIT_OFFSET_Y_COMPACT = -20; // mobile/tablet
+
   const scale = Math.min(
-    (w * (compactLayout ? 0.78 : 0.9)) / img.width,
-    (h * (compactLayout ? 0.86 : 0.9)) / img.height
+      (w * (compactLayout ? 0.78 : 0.9)) / img.width,
+      (h * (compactLayout ? 0.86 : 0.9)) / img.height
   );
 
-  const width = img.width * scale;
+  const width  = img.width  * scale;
   const height = img.height * scale;
 
   const x = (w - width) / 2;
-  const y = compactLayout ? (h - height) / 2 : (h - height) / 2 - 100;
+  const y = compactLayout
+      ? (h - height) / 2 + PORTRAIT_OFFSET_Y_COMPACT
+      : (h - height) / 2 + PORTRAIT_OFFSET_Y;
 
   imgBounds = { x, y, width, height };
 
   const offscreen = document.createElement('canvas');
-  offscreen.width = w;
+  offscreen.width  = w;
   offscreen.height = h;
   const offCtx = offscreen.getContext('2d', { willReadFrequently: true })!;
   offCtx.drawImage(img, x, y, width, height);
@@ -238,22 +233,12 @@ async function initParticles() {
       const b = imageData.data[index + 2];
       const a = imageData.data[index + 3];
 
-      if (
-        a > 100 &&
-        (r < 240 || g < 240 || b < 240)
-      ) {
+      if (a > 100 && (r < 240 || g < 240 || b < 240)) {
         const brightness = (r + g + b) / 3;
-
-        // Wave effect delay from top-left to bottom-right
         const delay = (px + py) * 0.05;
 
         particles.push(
-          new Particle(
-            px,
-            py,
-            255 - brightness,
-            delay
-          )
+            new Particle(px, py, 255 - brightness, delay)
         );
       }
     }
@@ -287,16 +272,17 @@ async function reinit() {
 }
 
 onMounted(async () => {
-  resizeCanvas();
-
-  window.addEventListener('resize', reinit);
-
-  try {
-    await initParticles();
-    animate();
-  } catch (error) {
-    console.error('Failed to load portrait or initialize particles:', error);
-  }
+  // Wait for the browser to finish its current paint cycle
+  requestAnimationFrame(async () => {
+    resizeCanvas();
+    window.addEventListener('resize', reinit);
+    try {
+      await initParticles();
+      animate();
+    } catch (error) {
+      console.error('Initialization failed:', error);
+    }
+  });
 });
 
 watch(() => props.containerEl, () => {

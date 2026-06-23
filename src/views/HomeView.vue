@@ -3,12 +3,10 @@
     <div class="hero-screen">
       <section class="hero-section">
 
-        <!-- Left: Particle Portrait — sized to match the text block -->
         <div class="hero-photo" ref="photoContainer">
           <MyPhotoComponent :containerEl="photoContainer" />
         </div>
 
-        <!-- Right: Intro Text -->
         <div class="hero-text">
           <div class="hero-text-inner" ref="textInner">
             <span class="hero-tag" ref="heroTag">👋 Hello there</span>
@@ -28,9 +26,9 @@
 
             <div class="hero-actions" ref="heroActions">
               <a
-                href="mailto:mkhdov@yahoo.com"
-                class="btn-primary"
-                id="say-hi-btn"
+                  href="mailto:mkhdov@yahoo.com"
+                  class="btn-primary"
+                  id="say-hi-btn"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -47,7 +45,6 @@
 
       </section>
 
-      <!-- Scroll Down Indicator -->
       <div class="scroll-indicator" aria-hidden="true">
         <div class="mouse">
           <div class="wheel"></div>
@@ -76,11 +73,11 @@ onMounted(() => {
 
   const type = () => {
     const currentWord = names[wordIndex];
-    let typeSpeed = 70; // Faster typing speed
+    let typeSpeed = 70;
 
     if (isDeleting) {
       currentText = currentWord.substring(0, currentText.length - 1);
-      typeSpeed = 30; // Faster backspace speed
+      typeSpeed = 30;
     } else {
       currentText = currentWord.substring(0, currentText.length + 1);
     }
@@ -88,20 +85,17 @@ onMounted(() => {
     typedName.value = currentText;
 
     if (!isDeleting && currentText === currentWord) {
-      // Wait 3 seconds after word is fully typed (shortened from 5s)
       typeSpeed = 3000;
       isDeleting = true;
     } else if (isDeleting && currentText === "") {
-      // Wait briefly before typing next word
       isDeleting = false;
       wordIndex = (wordIndex + 1) % names.length;
-      typeSpeed = 400; 
+      typeSpeed = 400;
     }
 
     setTimeout(type, typeSpeed);
   };
 
-  // Start typing after initial name fade-in (approx 600ms)
   setTimeout(type, 600);
 });
 </script>
@@ -124,44 +118,60 @@ onMounted(() => {
   min-height: 100vh;
   min-height: 100svh;
   padding-top: 64px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
 
 /* ─── Two-column grid ────────────────────────── */
 .hero-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: calc(100vh - 64px);
+  grid-template-columns: 1fr 1fr; /* Muted widths to give portrait narrow aspect ratio focus */
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 40px;
-  gap: 20px;
+  gap: 40px;
   align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 /* ─── Photo column ───────────────────────────── */
 .hero-photo {
-  /* Take full column height so canvas can size itself inside it */
-  height: 100%;
+  width: 100%;
+  height: 750px; /* Increased height so your canvas yields a much larger rendered portrait */
+  padding-bottom: 90px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   position: relative;
   animation: fadeSlideIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
 }
 
+/* Forces deep canvas child properties to occupy the container fully */
+.hero-photo :deep(canvas) {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
 /* ─── Text column ────────────────────────────── */
 .hero-text {
+  width: 100%;
+  height: 560px; /* Matched perfectly to photo height for structural equality */
   display: flex;
-  align-items: center;     /* vertically center within column */
+  align-items: center;
   justify-content: flex-start;
-  height: 100%;
-  padding-left: 24px;
+  position: relative;
 }
 
 .hero-text-inner {
   position: relative;
-  max-width: 500px;
+  width: 100%;
+  max-width: 520px;
 }
 
 /* ─── Tag ────────────────────────────────────── */
@@ -186,10 +196,10 @@ onMounted(() => {
 /* ─── Name ───────────────────────────────────── */
 .hero-name {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(28px, 3.6vw, 52px);
+  font-size: clamp(32px, 3.8vw, 52px);
   font-weight: 700;
   color: #1a1a2e;
-  line-height: 1.12;
+  line-height: 1.15;
   letter-spacing: -1.5px;
   margin: 0 0 18px;
   animation: fadeSlideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
@@ -203,11 +213,9 @@ onMounted(() => {
   display: block;
 }
 
-/* Blinking text-cursor  "|" — like an input caret */
 .caret {
   display: inline-block;
   font-weight: 300;
-  /* Override the gradient so it shows a solid colour */
   background: none;
   -webkit-background-clip: unset;
   -webkit-text-fill-color: #6c63ff;
@@ -306,36 +314,30 @@ onMounted(() => {
 
 @keyframes floatOrb {
   0%, 100% { transform: translate(0, 0)       scale(1);    }
-  33%       { transform: translate(20px, -14px) scale(1.05); }
-  66%       { transform: translate(-10px, 9px)  scale(0.97); }
+  33%        { transform: translate(20px, -14px) scale(1.05); }
+  66%        { transform: translate(-10px, 9px)  scale(0.97); }
 }
 
 /* ─── Tablet (641px – 900px) ─────────────────── */
 @media (max-width: 900px) {
   .hero-screen {
-    min-height: 100svh;
+    padding-top: 64px;
+    align-items: flex-start;
   }
 
   .hero-section {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
-    min-height: calc(100svh - 64px);
-    padding: 32px 32px 72px;
+    padding: 40px 32px 80px;
     gap: 24px;
-    align-content: center;
-    align-items: center;
   }
 
-  /* On tablet/mobile the photo is above text */
   .hero-photo {
-    height: clamp(240px, 42svh, 420px);
-    max-height: 420px;
-    min-height: 240px;
+    height: clamp(280px, 38vh, 380px);
   }
 
   .hero-text {
     height: auto;
-    padding-left: 0;
     justify-content: center;
     text-align: center;
   }
@@ -359,19 +361,16 @@ onMounted(() => {
   }
 
   .hero-section {
-    min-height: calc(100svh - 56px);
-    padding: 14px 20px 72px;
-    gap: 18px;
+    padding: 24px 20px 80px;
+    gap: 20px;
   }
 
   .hero-photo {
-    height: clamp(170px, 31svh, 260px);
-    max-height: 260px;
-    min-height: 170px;
+    height: clamp(220px, 32vh, 260px);
   }
 
   .hero-name {
-    font-size: clamp(28px, 10vw, 40px);
+    font-size: clamp(28px, 9vw, 38px);
     letter-spacing: -1px;
     margin-bottom: 14px;
   }
@@ -382,7 +381,7 @@ onMounted(() => {
   }
 
   .hero-sub {
-    font-size: clamp(14px, 4vw, 16px);
+    font-size: clamp(14px, 3.8vw, 16px);
     line-height: 1.65;
     margin-bottom: 24px;
   }
@@ -401,20 +400,19 @@ onMounted(() => {
 /* ─── Very small (≤ 380px) ───────────────────── */
 @media (max-width: 380px) {
   .hero-section {
-    padding: 10px 16px 64px;
-    gap: 14px;
+    padding: 16px 16px 72px;
+    gap: 16px;
   }
 
   .hero-photo {
-    height: clamp(150px, 28svh, 220px);
-    min-height: 150px;
+    height: clamp(180px, 28vh, 210px);
   }
 }
 
 /* ─── Scroll Indicator ───────────────────────── */
 .scroll-indicator {
   position: absolute;
-  bottom: 40px;
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
