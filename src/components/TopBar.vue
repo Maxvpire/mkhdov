@@ -33,7 +33,15 @@
           >
             Projects
           </a>
-          <a href="#" class="nav-link">Contact</a>
+          <a
+            href="/#contact"
+            class="nav-link"
+            :class="{ 'nav-link--active': isContactActive }"
+            :aria-current="isContactActive ? 'page' : undefined"
+            @click.prevent="goToContact"
+          >
+            Contact
+          </a>
         </nav>
       </div>
 
@@ -152,7 +160,15 @@
         >
           Projects
         </a>
-        <a href="#" class="mobile-nav-link">Contact</a>
+        <a
+          href="/#contact"
+          class="mobile-nav-link"
+          :class="{ 'mobile-nav-link--active': isContactActive }"
+          :aria-current="isContactActive ? 'page' : undefined"
+          @click.prevent="goToContact"
+        >
+          Contact
+        </a>
         <router-link to="/blog" class="mobile-nav-link mobile-blog" active-class="mobile-nav-link--active">Blog</router-link>
         <router-link to="/articles" class="mobile-nav-link mobile-articles" active-class="mobile-nav-link--active">Articles</router-link>
         <div class="mobile-socials">
@@ -187,12 +203,13 @@ import { useRoute, useRouter } from 'vue-router';
 const menuOpen = ref(false);
 const route = useRoute();
 const router = useRouter();
-const activeSection = ref<'home' | 'about' | 'projects'>('home');
+const activeSection = ref<'home' | 'about' | 'projects' | 'contact'>('home');
 
 const isHomeRoute = computed(() => route.path === '/');
 const isHomeActive = computed(() => isHomeRoute.value && activeSection.value === 'home');
 const isAboutActive = computed(() => isHomeRoute.value && activeSection.value === 'about');
 const isProjectsActive = computed(() => isHomeRoute.value && activeSection.value === 'projects');
+const isContactActive = computed(() => isHomeRoute.value && activeSection.value === 'contact');
 
 let ticking = false;
 
@@ -202,18 +219,24 @@ function updateActiveSection() {
     return;
   }
 
-  const about = document.getElementById('about');
-  const projects = document.getElementById('projects');
-
   const topbarOffset = window.innerWidth <= 640 ? 56 : 64;
-  const activationLine = topbarOffset + Math.min(window.innerHeight * 0.35, 220);
+  const activationY = window.scrollY + topbarOffset + Math.min(window.innerHeight * 0.32, 220);
+  const sections = [
+    { id: 'home' as const, top: 0 },
+    { id: 'about' as const, top: document.getElementById('about')?.offsetTop },
+    { id: 'projects' as const, top: document.getElementById('projects')?.offsetTop },
+    { id: 'contact' as const, top: document.getElementById('contact')?.offsetTop },
+  ].filter((section): section is { id: typeof activeSection.value; top: number } => {
+    return typeof section.top === 'number';
+  });
 
-  activeSection.value = 'home';
-  if (about && about.getBoundingClientRect().top <= activationLine) {
-    activeSection.value = 'about';
-  }
-  if (projects && projects.getBoundingClientRect().top <= activationLine) {
-    activeSection.value = 'projects';
+  activeSection.value = sections.reduce((current, section) => {
+    return section.top <= activationY ? section.id : current;
+  }, 'home' as typeof activeSection.value);
+
+  const pageBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 8;
+  if (pageBottom && document.getElementById('contact')) {
+    activeSection.value = 'contact';
   }
 }
 
@@ -263,6 +286,18 @@ async function goToProjects() {
   await nextTick();
   document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   activeSection.value = 'projects';
+}
+
+async function goToContact() {
+  menuOpen.value = false;
+
+  if (route.path !== '/' || route.hash !== '#contact') {
+    await router.push({ path: '/', hash: '#contact' });
+  }
+
+  await nextTick();
+  document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  activeSection.value = 'contact';
 }
 
 onMounted(() => {

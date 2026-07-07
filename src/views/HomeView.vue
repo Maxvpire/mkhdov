@@ -54,6 +54,7 @@
 
     <AboutSection />
     <ProjectsSection />
+    <ContactSection />
   </main>
 </template>
 
@@ -62,6 +63,7 @@ import { ref, onMounted } from 'vue';
 import AboutSection from '../components/AboutSection.vue';
 import MyPhotoComponent from '../components/MyPhotoComponent.vue';
 import ProjectsSection from '../components/ProjectsSection.vue';
+import ContactSection from '../components/ContactSection.vue';
 
 const photoContainer = ref<HTMLElement | null>(null);
 
