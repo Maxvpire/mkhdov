@@ -24,7 +24,15 @@
           >
             About
           </a>
-          <a href="#" class="nav-link">Projects</a>
+          <a
+            href="/#projects"
+            class="nav-link"
+            :class="{ 'nav-link--active': isProjectsActive }"
+            :aria-current="isProjectsActive ? 'page' : undefined"
+            @click.prevent="goToProjects"
+          >
+            Projects
+          </a>
           <a href="#" class="nav-link">Contact</a>
         </nav>
       </div>
@@ -135,7 +143,15 @@
         >
           About
         </a>
-        <a href="#" class="mobile-nav-link">Projects</a>
+        <a
+          href="/#projects"
+          class="mobile-nav-link"
+          :class="{ 'mobile-nav-link--active': isProjectsActive }"
+          :aria-current="isProjectsActive ? 'page' : undefined"
+          @click.prevent="goToProjects"
+        >
+          Projects
+        </a>
         <a href="#" class="mobile-nav-link">Contact</a>
         <router-link to="/blog" class="mobile-nav-link mobile-blog" active-class="mobile-nav-link--active">Blog</router-link>
         <router-link to="/articles" class="mobile-nav-link mobile-articles" active-class="mobile-nav-link--active">Articles</router-link>
@@ -171,11 +187,12 @@ import { useRoute, useRouter } from 'vue-router';
 const menuOpen = ref(false);
 const route = useRoute();
 const router = useRouter();
-const activeSection = ref<'home' | 'about'>('home');
+const activeSection = ref<'home' | 'about' | 'projects'>('home');
 
 const isHomeRoute = computed(() => route.path === '/');
 const isHomeActive = computed(() => isHomeRoute.value && activeSection.value === 'home');
 const isAboutActive = computed(() => isHomeRoute.value && activeSection.value === 'about');
+const isProjectsActive = computed(() => isHomeRoute.value && activeSection.value === 'projects');
 
 let ticking = false;
 
@@ -186,16 +203,18 @@ function updateActiveSection() {
   }
 
   const about = document.getElementById('about');
-
-  if (!about) {
-    activeSection.value = 'home';
-    return;
-  }
+  const projects = document.getElementById('projects');
 
   const topbarOffset = window.innerWidth <= 640 ? 56 : 64;
   const activationLine = topbarOffset + Math.min(window.innerHeight * 0.35, 220);
 
-  activeSection.value = about.getBoundingClientRect().top <= activationLine ? 'about' : 'home';
+  activeSection.value = 'home';
+  if (about && about.getBoundingClientRect().top <= activationLine) {
+    activeSection.value = 'about';
+  }
+  if (projects && projects.getBoundingClientRect().top <= activationLine) {
+    activeSection.value = 'projects';
+  }
 }
 
 function requestActiveUpdate() {
@@ -232,6 +251,18 @@ async function goToAbout() {
   await nextTick();
   document.getElementById('about')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   activeSection.value = 'about';
+}
+
+async function goToProjects() {
+  menuOpen.value = false;
+
+  if (route.path !== '/' || route.hash !== '#projects') {
+    await router.push({ path: '/', hash: '#projects' });
+  }
+
+  await nextTick();
+  document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  activeSection.value = 'projects';
 }
 
 onMounted(() => {

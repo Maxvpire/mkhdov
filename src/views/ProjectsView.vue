@@ -1,15 +1,15 @@
 <template>
-  <main class="articles-page">
+  <main class="projects-page">
     <TopBar />
 
     <div class="page-content">
       <!-- Hero Header -->
       <div class="page-header">
-        <span class="section-kicker">✍️ Articles</span>
-        <h1>Thoughts &amp; Writings</h1>
+        <span class="section-kicker">🚀 Projects</span>
+        <h1>Things I've Built</h1>
         <p class="page-desc">
-          Ideas, lessons learned, and deep-dives on software engineering,
-          system design, and the occasional life reflection.
+          A collection of projects ranging from scalable backend systems to
+          interactive web applications. Each one taught me something new.
         </p>
       </div>
 
@@ -28,43 +28,84 @@
       </div>
 
       <!-- Empty -->
-      <div v-else-if="articles.length === 0" class="empty-state">
-        <div class="empty-icon">📝</div>
-        <h3>No articles yet</h3>
-        <p>Check back soon — writing is in progress.</p>
+      <div v-else-if="projects.length === 0" class="empty-state">
+        <div class="empty-icon">🔧</div>
+        <h3>No projects yet</h3>
+        <p>Check back soon — something is always being built.</p>
       </div>
 
       <!-- Grid -->
-      <div v-else class="articles-grid">
-        <router-link
-          v-for="article in articles"
-          :key="article.id"
-          :to="`/articles/${article.id}`"
-          class="article-card"
+      <div v-else class="projects-grid">
+        <div
+          v-for="project in projects"
+          :key="project.id"
+          class="project-card"
+          :class="{ featured: project.featured }"
         >
+          <!-- Featured badge -->
+          <div v-if="project.featured" class="featured-badge">⭐ Featured</div>
+
           <div class="card-cover">
             <img
-              v-if="article.cover_image_url"
-              :src="article.cover_image_url"
-              :alt="article.title"
+              v-if="project.cover_image_url"
+              :src="project.cover_image_url"
+              :alt="project.title"
               loading="lazy"
             />
             <div v-else class="cover-fallback">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <path d="M8 21h8M12 17v4"/>
               </svg>
             </div>
           </div>
+
           <div class="card-body">
-            <span class="card-date">{{ formatDate(article.created_at) }}</span>
-            <h2 class="card-title">{{ article.title }}</h2>
-            <p class="card-excerpt">{{ excerpt(article.content) }}</p>
-            <span class="card-read">Read article →</span>
+            <h2 class="card-title">{{ project.title }}</h2>
+            <p class="card-desc">{{ project.description }}</p>
+
+            <!-- Tech Stack -->
+            <div v-if="project.tech_stack?.length" class="tech-stack">
+              <span
+                v-for="tech in project.tech_stack.slice(0, 5)"
+                :key="tech"
+                class="tech-badge"
+              >{{ tech }}</span>
+            </div>
+
+            <!-- Links -->
+            <div class="card-links">
+              <a
+                v-if="project.live_url"
+                :href="project.live_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="card-link live"
+                @click.stop
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15 3 21 3 21 9"/>
+                  <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                Live Demo
+              </a>
+              <a
+                v-if="project.github_url"
+                :href="project.github_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="card-link github"
+                @click.stop
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                </svg>
+                GitHub
+              </a>
+            </div>
           </div>
-        </router-link>
+        </div>
       </div>
     </div>
   </main>
@@ -75,44 +116,37 @@ import { ref, onMounted } from 'vue'
 import TopBar from '../components/TopBar.vue'
 import { supabase } from '../lib/supabase'
 
-interface Article {
+interface Project {
   id: string
   title: string
-  content: string | null
+  description: string | null
   cover_image_url: string | null
+  tech_stack: string[] | null
+  live_url: string | null
+  github_url: string | null
+  featured: boolean
+  order_index: number
   created_at: string
 }
 
-const articles = ref<Article[]>([])
+const projects = ref<Project[]>([])
 const loading = ref(true)
 
 onMounted(async () => {
   const { data, error } = await supabase
-    .from('articles')
-    .select('id, title, content, cover_image_url, created_at')
+    .from('projects')
+    .select('id, title, description, cover_image_url, tech_stack, live_url, github_url, featured, order_index, created_at')
     .eq('published', true)
-    .order('created_at', { ascending: false })
-  if (!error) articles.value = data ?? []
+    .order('order_index', { ascending: true })
+  if (!error) projects.value = data ?? []
   loading.value = false
 })
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    year: 'numeric', month: 'long', day: 'numeric',
-  })
-}
-
-function excerpt(html: string | null, maxLen = 130): string {
-  if (!html) return ''
-  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
-  return text.length > maxLen ? text.slice(0, maxLen) + '…' : text
-}
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
-.articles-page {
+.projects-page {
   min-height: 100vh;
   background: #ffffff;
   font-family: 'Inter', sans-serif;
@@ -167,30 +201,50 @@ function excerpt(html: string | null, maxLen = 130): string {
   margin: 0 auto;
 }
 
-/* ── Articles Grid ── */
-.articles-grid {
+/* ── Projects Grid ── */
+.projects-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 28px;
 }
 
 /* ── Card ── */
-.article-card {
+.project-card {
   display: flex;
   flex-direction: column;
   background: #fff;
   border: 1px solid rgba(108, 99, 255, 0.1);
   border-radius: 20px;
   overflow: hidden;
-  text-decoration: none;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  position: relative;
 }
 
-.article-card:hover {
+.project-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 16px 48px rgba(108, 99, 255, 0.14);
   border-color: rgba(108, 99, 255, 0.3);
+}
+
+.project-card.featured {
+  border-color: rgba(108, 99, 255, 0.25);
+  background: linear-gradient(180deg, rgba(108,99,255,0.02) 0%, #fff 60%);
+}
+
+.featured-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6c63ff;
+  background: rgba(108,99,255,0.1);
+  border: 1px solid rgba(108,99,255,0.2);
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  z-index: 2;
 }
 
 .card-cover {
@@ -208,7 +262,7 @@ function excerpt(html: string | null, maxLen = 130): string {
   transition: transform 0.4s ease;
 }
 
-.article-card:hover .card-cover img {
+.project-card:hover .card-cover img {
   transform: scale(1.04);
 }
 
@@ -218,23 +272,15 @@ function excerpt(html: string | null, maxLen = 130): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(108, 99, 255, 0.35);
+  color: rgba(108, 99, 255, 0.3);
 }
 
 .card-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding: 22px 24px 24px;
   flex: 1;
-}
-
-.card-date {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6c63ff;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .card-title {
@@ -247,7 +293,7 @@ function excerpt(html: string | null, maxLen = 130): string {
   margin: 0;
 }
 
-.card-excerpt {
+.card-desc {
   font-size: 14px;
   line-height: 1.7;
   color: #64748b;
@@ -255,12 +301,63 @@ function excerpt(html: string | null, maxLen = 130): string {
   flex: 1;
 }
 
-.card-read {
+/* Tech Stack */
+.tech-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.tech-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #312e81;
+  background: rgba(108, 99, 255, 0.07);
+  border: 1px solid rgba(108, 99, 255, 0.15);
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+}
+
+/* Links */
+.card-links {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 13px;
   font-weight: 600;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1.5px solid;
+  transition: all 0.2s;
+}
+
+.card-link.live {
   color: #6c63ff;
-  margin-top: 4px;
-  transition: gap 0.2s;
+  border-color: rgba(108,99,255,0.25);
+  background: rgba(108,99,255,0.05);
+}
+.card-link.live:hover {
+  background: rgba(108,99,255,0.12);
+  border-color: #6c63ff;
+}
+
+.card-link.github {
+  color: #1a1a2e;
+  border-color: rgba(26,26,46,0.15);
+  background: rgba(26,26,46,0.03);
+}
+.card-link.github:hover {
+  background: rgba(26,26,46,0.08);
+  border-color: rgba(26,26,46,0.3);
 }
 
 /* ── Loading Skeletons ── */
@@ -328,12 +425,12 @@ function excerpt(html: string | null, maxLen = 130): string {
 /* ── Responsive ── */
 @media (max-width: 960px) {
   .page-content { padding: 100px 32px 80px; }
-  .articles-grid, .skeleton-grid { grid-template-columns: repeat(2, 1fr); }
+  .projects-grid, .skeleton-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
   .page-content { padding: 80px 20px 60px; }
-  .articles-grid, .skeleton-grid { grid-template-columns: 1fr; }
+  .projects-grid, .skeleton-grid { grid-template-columns: 1fr; }
   .page-header { margin-bottom: 40px; }
 }
 </style>

@@ -7,9 +7,19 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 watch(() => route.path, async (newPath) => {
+  let pagePath = newPath
+  if (newPath.startsWith('/articles/')) {
+    pagePath = '/articles'
+  }
+
+  const allowedPaths = ['/', '/articles', '/projects', '/blog']
+  if (!allowedPaths.includes(pagePath)) {
+    return
+  }
+
   await supabase
       .from('page_views')
-      .insert({ page: newPath })
+      .insert({ page: pagePath })
 }, { immediate: true })
 </script>
 

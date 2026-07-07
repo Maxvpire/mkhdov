@@ -53,6 +53,7 @@
     </div>
 
     <AboutSection />
+    <ProjectsSection />
   </main>
 </template>
 
@@ -60,6 +61,7 @@
 import { ref, onMounted } from 'vue';
 import AboutSection from '../components/AboutSection.vue';
 import MyPhotoComponent from '../components/MyPhotoComponent.vue';
+import ProjectsSection from '../components/ProjectsSection.vue';
 
 const photoContainer = ref<HTMLElement | null>(null);
 
@@ -366,7 +368,7 @@ onMounted(() => {
   }
 
   .hero-photo {
-    height: clamp(220px, 32vh, 260px);
+    height: clamp(300px, 52vh, 420px);
   }
 
   .hero-name {
@@ -405,7 +407,7 @@ onMounted(() => {
   }
 
   .hero-photo {
-    height: clamp(180px, 28vh, 210px);
+    height: clamp(260px, 46vh, 340px);
   }
 }
 
@@ -425,12 +427,7 @@ onMounted(() => {
 
 @media (max-width: 640px) {
   .scroll-indicator {
-    bottom: 18px;
-  }
-
-  .mouse {
-    width: 22px;
-    height: 34px;
+    display: none;
   }
 }
 

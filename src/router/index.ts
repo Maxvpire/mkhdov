@@ -18,6 +18,16 @@ const router = createRouter({
       component: ArticlesView,
     },
     {
+      path: '/articles/:id',
+      name: 'article-detail',
+      component: () => import('../views/ArticleDetailView.vue'),
+    },
+    {
+      path: '/projects',
+      name: 'projects',
+      component: () => import('../views/ProjectsView.vue'),
+    },
+    {
       path: '/blog',
       name: 'blog',
       component: BlogView,
