@@ -22,24 +22,16 @@
 
         <div class="about-text">
           <p class="reveal-item">
-            I am a Software Engineer focused on scalable, real-world systems.
-            My strongest foundation is microservices architecture and high-level
-            system design, which helps me build applications that can grow beyond
-            the first release.
+            I'm a high school student passionate about computer science, with a growing interest in backend software engineering, distributed systems, machine learning, and system design.
+          </p>
+          <p class="reveal-item">
+            I enjoy understanding how complex technologies work beneath the surface—not just how to use them, but how they are designed, optimized, and scaled. My current focus is on building practical software projects while strengthening my knowledge of algorithms, databases, software architecture, and modern engineering practices.
           </p>
 
           <p class="reveal-item">
-            So far, I have built a scalable calendar application inspired by
-            Google Calendar. That project pushed my understanding of distributed
-            systems, clean backend architecture, and product-minded engineering.
+            Beyond software development, I'm exploring machine learning and the broader field of computer science because my long-term goal is to contribute to technologies that push the industry forward. I aspire to work on challenging engineering problems, create innovative solutions, and help build the next generation of intelligent and scalable systems.
           </p>
-
-          <p class="reveal-item">
-            My goal is to join a big tech company and work on products that
-            impact millions of users. I believe strong architectural thinking
-            and hands-on engineering are what separate good engineers from great
-            ones, and that is exactly what I am working toward.
-          </p>
+          <p class="reveal-item">I'm committed to continuous learning, building meaningful projects, and developing the technical depth needed to make a lasting impact in technology.</p>
         </div>
 
         <div class="about-stack reveal-item" aria-label="Core stack">

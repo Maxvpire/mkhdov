@@ -36,6 +36,12 @@ let animationId = 0;
 let particles: Particle[] = [];
 let imgBounds = { x: 0, y: 0, width: 0, height: 0 };
 
+// Persist across remounts / resize so the scatter intro only plays once per visit.
+const INTRO_KEY = 'hero-intro-played';
+let portraitIntroPlayed = sessionStorage.getItem(INTRO_KEY) === '1';
+let lastContainerSize = { w: 0, h: 0 };
+let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+
 function getContainerSize() {
   const el = props.containerEl ?? canvasRef.value?.parentElement ?? null;
   if (el) {
@@ -65,14 +71,23 @@ class Particle {
     x: number,
     y: number,
     brightness: number,
-    delay: number
+    delay: number,
+    instant = false
   ) {
-    // Start scattered randomly around their base position
-    this.x = x + (Math.random() - 0.5) * 800;
-    this.y = y + (Math.random() - 0.5) * 800;
-
     this.baseX = x;
     this.baseY = y;
+
+    if (instant) {
+      this.x = x;
+      this.y = y;
+      this.opacity = 1;
+      this.elapsed = delay + 1;
+    } else {
+      this.x = x + (Math.random() - 0.5) * 800;
+      this.y = y + (Math.random() - 0.5) * 800;
+      this.opacity = 0;
+      this.elapsed = 0;
+    }
 
     this.density = Math.random() * 10 + 1;
     this.delay = delay;
@@ -189,12 +204,13 @@ async function loadImage(url: string) {
   });
 }
 
-async function initParticles() {
+async function initParticles(instant = false) {
   const img = await loadImage(portraitUrl);
 
   particles = [];
 
   const { w, h } = getContainerSize();
+  lastContainerSize = { w, h };
 
   const compactLayout = w <= 640 || h <= 360;
 
@@ -240,7 +256,7 @@ async function initParticles() {
         const delay = (px + py) * 0.05;
 
         particles.push(
-            new Particle(px, py, 255 - brightness, delay)
+            new Particle(px, py, 255 - brightness, delay, instant)
         );
       }
     }
@@ -262,38 +278,54 @@ function animate() {
   animationId = requestAnimationFrame(animate);
 }
 
-async function reinit() {
+async function reinit(instant = portraitIntroPlayed) {
   cancelAnimationFrame(animationId);
   resizeCanvas();
   try {
-    await initParticles();
+    await initParticles(instant);
     animate();
+    if (!instant) {
+      portraitIntroPlayed = true;
+      sessionStorage.setItem(INTRO_KEY, '1');
+    }
   } catch (error) {
     console.error('Failed to load portrait or initialize particles:', error);
   }
 }
 
+function handleResize() {
+  if (resizeTimer) clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const { w, h } = getContainerSize();
+    const dw = Math.abs(w - lastContainerSize.w);
+    const dh = Math.abs(h - lastContainerSize.h);
+    if (dw < 8 && dh < 8) return;
+    void reinit(true);
+  }, 180);
+}
+
 onMounted(async () => {
-  // Wait for the browser to finish its current paint cycle
   requestAnimationFrame(async () => {
     resizeCanvas();
-    window.addEventListener('resize', reinit);
+    window.addEventListener('resize', handleResize);
     try {
-      await initParticles();
-      animate();
+      await reinit(portraitIntroPlayed);
     } catch (error) {
       console.error('Initialization failed:', error);
     }
   });
 });
 
-watch(() => props.containerEl, () => {
-  reinit();
+watch(() => props.containerEl, (el, prev) => {
+  if (!el || el === prev) return;
+  if (!portraitIntroPlayed) return;
+  void reinit(true);
 });
 
 onUnmounted(() => {
   cancelAnimationFrame(animationId);
-  window.removeEventListener('resize', reinit);
+  window.removeEventListener('resize', handleResize);
+  if (resizeTimer) clearTimeout(resizeTimer);
 });
 </script>
 

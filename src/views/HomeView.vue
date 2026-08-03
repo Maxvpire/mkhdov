@@ -1,6 +1,6 @@
 <template>
   <main class="home">
-    <div class="hero-screen">
+    <div class="hero-screen" :class="{ 'hero-intro-done': heroIntroDone }">
       <section class="hero-section">
 
         <div class="hero-photo" ref="photoContainer">
@@ -71,11 +71,13 @@ import ProjectsSection from '../components/ProjectsSection.vue';
 import ContactSection from '../components/ContactSection.vue';
 
 const photoContainer = ref<HTMLElement | null>(null);
+const heroIntroDone = ref(sessionStorage.getItem('hero-intro-played') === '1');
 
 const names = ["Olimjon", "Makhmudov", "mkhdov"];
 const typedName = ref("");
 
 onMounted(() => {
+  sessionStorage.setItem('hero-intro-played', '1');
   let wordIndex = 0;
   let isDeleting = false;
   let currentText = "";
@@ -342,6 +344,17 @@ onMounted(() => {
   0%, 100% { transform: translate(0, 0)       scale(1);    }
   33%        { transform: translate(20px, -14px) scale(1.05); }
   66%        { transform: translate(-10px, 9px)  scale(0.97); }
+}
+
+.hero-intro-done .hero-photo,
+.hero-intro-done .hero-tag,
+.hero-intro-done .hero-name,
+.hero-intro-done .hero-sub,
+.hero-intro-done .hero-actions,
+.hero-intro-done .scroll-indicator {
+  animation: none;
+  opacity: 1;
+  transform: none;
 }
 
 /* ─── Tablet (641px – 900px) ─────────────────── */
