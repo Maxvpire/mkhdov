@@ -338,6 +338,7 @@ onMounted(() => {
 
   .hero-photo {
     height: clamp(280px, 38vh, 380px);
+    padding-bottom: 0;
   }
 
   .hero-text {
@@ -365,51 +366,84 @@ onMounted(() => {
   }
 
   .hero-section {
-    padding: 24px 20px 80px;
-    gap: 20px;
+    padding: 20px 20px 72px;
+    gap: 14px;
   }
 
   .hero-photo {
-    height: clamp(300px, 52vh, 420px);
+    width: min(88vw, 340px);
+    height: clamp(380px, 58vh, 500px);
+    padding-bottom: 0;
+    margin: 0 auto;
+  }
+
+  .hero-text-inner {
+    max-width: 340px;
   }
 
   .hero-name {
-    font-size: clamp(28px, 9vw, 38px);
-    letter-spacing: -1px;
-    margin-bottom: 14px;
+    font-size: clamp(22px, 6.2vw, 28px);
+    letter-spacing: -0.8px;
+    margin-bottom: 10px;
   }
 
   .hero-tag {
-    font-size: 11px;
-    margin-bottom: 14px;
+    font-size: 10px;
+    padding: 4px 12px;
+    margin-bottom: 10px;
   }
 
   .hero-sub {
-    font-size: clamp(14px, 3.8vw, 16px);
-    line-height: 1.65;
-    margin-bottom: 24px;
+    font-size: clamp(12px, 3.2vw, 14px);
+    line-height: 1.6;
+    margin-bottom: 18px;
+    max-width: 34ch;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .btn-primary {
-    width: 100%;
-    justify-content: center;
-    padding: 14px 20px;
+    width: auto;
+    font-size: 13px;
+    padding: 10px 22px;
+    border-radius: 12px;
+  }
+
+  .btn-primary svg {
+    width: 15px;
+    height: 15px;
   }
 
   .hero-actions {
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: center;
   }
 }
 
 /* ─── Very small (≤ 380px) ───────────────────── */
 @media (max-width: 380px) {
   .hero-section {
-    padding: 16px 16px 72px;
-    gap: 16px;
+    padding: 16px 16px 64px;
+    gap: 12px;
   }
 
   .hero-photo {
-    height: clamp(260px, 46vh, 340px);
+    width: min(92vw, 320px);
+    height: clamp(340px, 54vh, 440px);
+  }
+
+  .hero-name {
+    font-size: clamp(20px, 5.8vw, 24px);
+  }
+
+  .hero-sub {
+    font-size: 12px;
+    max-width: 32ch;
+  }
+
+  .btn-primary {
+    font-size: 12.5px;
+    padding: 9px 18px;
   }
 }
 
