@@ -7,6 +7,11 @@
           <MyPhotoComponent :containerEl="photoContainer" />
         </div>
 
+        <div class="hero-bridge" aria-hidden="true">
+          <span class="bridge-line"></span>
+          <span class="bridge-dot"></span>
+        </div>
+
         <div class="hero-text">
           <div class="hero-text-inner" ref="textInner">
             <span class="hero-tag" ref="heroTag">👋 Hello there</span>
@@ -146,13 +151,30 @@ onMounted(() => {
 /* ─── Photo column ───────────────────────────── */
 .hero-photo {
   width: 100%;
-  height: 750px; /* Increased height so your canvas yields a much larger rendered portrait */
+  height: 750px;
   padding-bottom: 90px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   position: relative;
   animation: fadeSlideIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+.hero-photo::before {
+  content: '';
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72%;
+  height: 52%;
+  background: radial-gradient(ellipse at center, rgba(108, 99, 255, 0.07) 0%, transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-bridge {
+  display: none;
 }
 
 /* Forces deep canvas child properties to occupy the container fully */
@@ -327,24 +349,39 @@ onMounted(() => {
   .hero-screen {
     padding-top: 64px;
     align-items: flex-start;
+    justify-content: flex-start;
+    min-height: auto;
   }
 
   .hero-section {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-    padding: 40px 32px 80px;
-    gap: 24px;
+    grid-template-rows: auto auto auto;
+    padding: 12px 32px 64px;
+    gap: 0;
   }
 
   .hero-photo {
     height: clamp(280px, 38vh, 380px);
     padding-bottom: 0;
+    margin: 0 auto -72px;
+  }
+
+  .hero-bridge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin: 0 auto 10px;
+    position: relative;
+    z-index: 1;
   }
 
   .hero-text {
     height: auto;
     justify-content: center;
     text-align: center;
+    position: relative;
+    z-index: 1;
   }
 
   .hero-text-inner {
@@ -356,25 +393,67 @@ onMounted(() => {
     justify-content: center;
   }
 
-  .orb-1, .orb-2 { display: none; }
+  .orb-2 { display: none; }
 }
 
 /* ─── Mobile (≤ 640px) ───────────────────────── */
 @media (max-width: 640px) {
   .hero-screen {
     padding-top: 56px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    min-height: auto;
   }
 
   .hero-section {
-    padding: 20px 20px 72px;
-    gap: 14px;
+    padding: 4px 20px 56px;
+    gap: 0;
   }
 
   .hero-photo {
     width: min(88vw, 340px);
     height: clamp(380px, 58vh, 500px);
     padding-bottom: 0;
-    margin: 0 auto;
+    margin: 0 auto -108px;
+  }
+
+  .hero-photo::before {
+    top: 2%;
+    width: 88%;
+    height: 58%;
+    background: radial-gradient(ellipse at center, rgba(108, 99, 255, 0.09) 0%, transparent 68%);
+  }
+
+  .hero-bridge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin: 0 auto 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .bridge-line {
+    width: 1px;
+    height: 20px;
+    background: linear-gradient(180deg, rgba(108, 99, 255, 0.42) 0%, rgba(108, 99, 255, 0.08) 100%);
+    border-radius: 1px;
+  }
+
+  .bridge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #6c63ff;
+    opacity: 0.55;
+    animation: bridgePulse 2.4s ease-in-out infinite;
+  }
+
+  .hero-text {
+    position: relative;
+    z-index: 1;
+    padding-top: 0;
   }
 
   .hero-text-inner {
@@ -418,18 +497,40 @@ onMounted(() => {
     flex-direction: row;
     justify-content: center;
   }
+
+  .orb-1 {
+    display: block;
+    width: 200px;
+    height: 200px;
+    top: 40px;
+    right: -40px;
+    opacity: 0.7;
+  }
+}
+
+@keyframes bridgePulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 0.85; transform: scale(1.25); }
 }
 
 /* ─── Very small (≤ 380px) ───────────────────── */
 @media (max-width: 380px) {
   .hero-section {
-    padding: 16px 16px 64px;
-    gap: 12px;
+    padding: 2px 16px 48px;
   }
 
   .hero-photo {
     width: min(92vw, 320px);
     height: clamp(340px, 54vh, 440px);
+    margin-bottom: -96px;
+  }
+
+  .hero-bridge {
+    margin-bottom: 8px;
+  }
+
+  .bridge-line {
+    height: 16px;
   }
 
   .hero-name {

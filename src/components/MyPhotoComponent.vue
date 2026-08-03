@@ -198,20 +198,22 @@ async function initParticles() {
 
   const compactLayout = w <= 640 || h <= 360;
 
-  const PORTRAIT_OFFSET_Y = -160;        // desktop — higher = move up
-  const PORTRAIT_OFFSET_Y_COMPACT = -20; // mobile/tablet
+  const PORTRAIT_OFFSET_Y = -160;
+  const PORTRAIT_TOP_PADDING = 4;
 
-  const scale = Math.min(
-      (w * (compactLayout ? 0.78 : 0.9)) / img.width,
-      (h * (compactLayout ? 0.86 : 0.9)) / img.height
-  );
+  const scale = compactLayout
+      ? (w * 0.78) / img.width
+      : Math.min(
+          (w * 0.9) / img.width,
+          (h * 0.9) / img.height
+        );
 
   const width  = img.width  * scale;
   const height = img.height * scale;
 
   const x = (w - width) / 2;
   const y = compactLayout
-      ? (h - height) / 2 + PORTRAIT_OFFSET_Y_COMPACT
+      ? PORTRAIT_TOP_PADDING
       : (h - height) / 2 + PORTRAIT_OFFSET_Y;
 
   imgBounds = { x, y, width, height };
