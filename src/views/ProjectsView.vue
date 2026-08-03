@@ -51,13 +51,17 @@
               :src="project.cover_image_url"
               :alt="project.title"
               loading="lazy"
+              decoding="async"
             />
-            <div v-else class="cover-fallback">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <div v-else class="cover-fallback" :style="fallbackStyle(project)">
+              <span class="blob blob-a"></span>
+              <span class="blob blob-b"></span>
+              <svg class="fallback-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <rect x="2" y="3" width="20" height="14" rx="2"/>
                 <path d="M8 21h8M12 17v4"/>
               </svg>
             </div>
+            <div class="cover-scrim"></div>
           </div>
 
           <div class="card-body">
@@ -131,6 +135,21 @@ interface Project {
 
 const projects = ref<Project[]>([])
 const loading = ref(true)
+
+const GRADIENTS = [
+  ['#6c63ff', '#a78bfa'],
+  ['#f472b6', '#fb923c'],
+  ['#22d3ee', '#6366f1'],
+  ['#34d399', '#3b82f6'],
+  ['#f59e0b', '#ef4444'],
+  ['#8b5cf6', '#ec4899'],
+]
+
+function fallbackStyle(project: Project) {
+  const i = projects.value.findIndex(p => p.id === project.id)
+  const [a, b] = GRADIENTS[(i >= 0 ? i : 0) % GRADIENTS.length]
+  return { '--grad-a': a, '--grad-b': b } as Record<string, string>
+}
 
 onMounted(async () => {
   const { data, error } = await supabase
@@ -213,23 +232,47 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   background: #fff;
-  border: 1px solid rgba(108, 99, 255, 0.1);
+  border: 1px solid rgba(108, 99, 255, 0.14);
   border-radius: 20px;
   overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  transition: transform 0.25s ease, border-color 0.25s ease;
   position: relative;
 }
 
+.project-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.06) 0%, transparent 55%);
+}
+
 .project-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 16px 48px rgba(108, 99, 255, 0.14);
-  border-color: rgba(108, 99, 255, 0.3);
+  transform: translateY(-4px);
+  border-color: rgba(108, 99, 255, 0.38);
+}
+
+.project-card:hover::before {
+  opacity: 1;
 }
 
 .project-card.featured {
-  border-color: rgba(108, 99, 255, 0.25);
-  background: linear-gradient(180deg, rgba(108,99,255,0.02) 0%, #fff 60%);
+  border-color: rgba(108, 99, 255, 0.32);
+  background: linear-gradient(180deg, rgba(108, 99, 255, 0.04) 0%, #fff 48%);
+}
+
+.project-card.featured::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6c63ff, #a78bfa, #6c63ff);
+  z-index: 2;
 }
 
 .featured-badge {
@@ -238,28 +281,32 @@ onMounted(async () => {
   right: 12px;
   font-size: 11px;
   font-weight: 700;
-  color: #6c63ff;
-  background: rgba(108,99,255,0.1);
-  border: 1px solid rgba(108,99,255,0.2);
+  color: #78350f;
+  background: rgba(251, 191, 36, 0.92);
+  border: 1px solid rgba(245, 158, 11, 0.45);
   padding: 4px 10px;
   border-radius: 999px;
   letter-spacing: 0.04em;
-  z-index: 2;
+  z-index: 3;
 }
 
 .card-cover {
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(108,99,255,0.06) 0%, rgba(167,139,250,0.06) 100%);
+  background: #12122a;
   flex-shrink: 0;
+  position: relative;
+  isolation: isolate;
 }
 
 .card-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 22%;
   transition: transform 0.4s ease;
+  display: block;
 }
 
 .project-card:hover .card-cover img {
@@ -267,12 +314,53 @@ onMounted(async () => {
 }
 
 .cover-fallback {
+  --grad-a: #6c63ff;
+  --grad-b: #a78bfa;
   width: 100%;
   height: 100%;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(108, 99, 255, 0.3);
+  background: linear-gradient(135deg, var(--grad-a) 0%, var(--grad-b) 100%);
+  overflow: hidden;
+}
+
+.cover-fallback .blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(26px);
+  opacity: 0.55;
+  mix-blend-mode: overlay;
+}
+
+.cover-fallback .blob-a {
+  width: 140px;
+  height: 140px;
+  background: rgba(255, 255, 255, 0.22);
+  top: -30px;
+  left: -20px;
+}
+
+.cover-fallback .blob-b {
+  width: 110px;
+  height: 110px;
+  background: rgba(0, 0, 0, 0.28);
+  bottom: -30px;
+  right: -10px;
+}
+
+.fallback-icon {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cover-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 62%, rgba(15, 15, 35, 0.42) 100%);
+  pointer-events: none;
 }
 
 .card-body {
@@ -429,8 +517,18 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
-  .page-content { padding: 80px 20px 60px; }
-  .projects-grid, .skeleton-grid { grid-template-columns: 1fr; }
+  .page-content { padding: 80px 16px 60px; }
+  .projects-grid, .skeleton-grid { grid-template-columns: 1fr; gap: 20px; }
   .page-header { margin-bottom: 40px; }
+
+  .project-card { border-radius: 16px; }
+  .project-card:hover { transform: none; }
+  .project-card:hover .card-cover img { transform: none; }
+
+  .card-cover { aspect-ratio: 16 / 10; }
+  .card-cover img { object-position: center center; }
+
+  .card-body { padding: 18px 18px 20px; }
+  .card-title { font-size: 17px; }
 }
 </style>

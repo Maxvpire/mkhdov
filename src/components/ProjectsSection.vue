@@ -96,6 +96,8 @@
                       :src="project.cover_image_url"
                       :alt="project.title"
                       loading="lazy"
+                      decoding="async"
+                      :fetchpriority="i === 0 ? 'high' : 'auto'"
                   />
                   <div v-else class="cover-fallback" :style="fallbackStyle(i)">
                     <span class="blob blob-a"></span>
@@ -499,7 +501,6 @@ onUnmounted(() => {
 .view-all-btn:hover {
   background: rgba(108, 99, 255, 0.11);
   border-color: #6c63ff;
-  box-shadow: 0 4px 16px rgba(108, 99, 255, 0.14);
   transform: translateY(-1px);
 }
 
@@ -516,11 +517,7 @@ onUnmounted(() => {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  margin: 0 -4px;
-  padding: 8px 4px 16px;
-  /* soft fade at the edges so the peeking card feels intentional, not clipped */
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  padding: 4px 0 12px;
 }
 
 .carousel-track {
@@ -536,23 +533,21 @@ onUnmounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1.5px solid rgba(108, 99, 255, 0.2);
-  background: #fff;
+  border: 1.5px solid rgba(108, 99, 255, 0.28);
+  background: rgba(108, 99, 255, 0.06);
   color: #6c63ff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.2s;
-  box-shadow: 0 2px 12px rgba(108, 99, 255, 0.08);
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
   z-index: 2;
 }
 .carousel-btn:hover:not(:disabled) {
   background: #6c63ff;
   color: #fff;
   border-color: #6c63ff;
-  box-shadow: 0 4px 20px rgba(108, 99, 255, 0.25);
   transform: scale(1.06);
 }
 .carousel-btn:disabled {
@@ -593,22 +588,42 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   background: #fff;
-  border: 1px solid rgba(108, 99, 255, 0.1);
+  border: 1px solid rgba(108, 99, 255, 0.14);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
   position: relative;
-  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+  transition: transform 0.28s ease, border-color 0.28s ease;
+}
+.project-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.06) 0%, transparent 55%);
 }
 .project-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 56px rgba(108, 99, 255, 0.16);
-  border-color: rgba(108, 99, 255, 0.28);
+  transform: translateY(-5px);
+  border-color: rgba(108, 99, 255, 0.38);
+}
+.project-card:hover::before {
+  opacity: 1;
 }
 .project-card.featured {
-  border-color: rgba(108, 99, 255, 0.28);
-  background: linear-gradient(180deg, rgba(108,99,255,0.025) 0%, #fff 50%);
-  box-shadow: 0 6px 24px rgba(108, 99, 255, 0.1);
+  border-color: rgba(108, 99, 255, 0.32);
+  background: linear-gradient(180deg, rgba(108, 99, 255, 0.04) 0%, #fff 48%);
+}
+.project-card.featured::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6c63ff, #a78bfa, #6c63ff);
+  z-index: 3;
 }
 
 .featured-badge {
@@ -621,14 +636,12 @@ onUnmounted(() => {
   font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
-  color: #92400e;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(245,158,11,0.35);
+  color: #78350f;
+  background: rgba(251, 191, 36, 0.92);
+  border: 1px solid rgba(245, 158, 11, 0.45);
   padding: 4px 10px 4px 8px;
   border-radius: 999px;
-  z-index: 2;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+  z-index: 4;
 }
 .featured-badge svg { color: #f59e0b; }
 
@@ -638,13 +651,15 @@ onUnmounted(() => {
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: #0f0f23;
+  background: #12122a;
   flex-shrink: 0;
+  isolation: isolate;
 }
 .card-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 22%;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   display: block;
 }
@@ -671,9 +686,9 @@ onUnmounted(() => {
   mix-blend-mode: overlay;
   transition: transform 0.6s ease;
 }
-.cover-fallback .blob-a { width: 140px; height: 140px; background: #fff; top: -30px; left: -20px; }
-.cover-fallback .blob-b { width: 110px; height: 110px; background: #000; bottom: -30px; right: -10px; }
-.cover-fallback .blob-c { width: 90px;  height: 90px;  background: #fff; bottom: 10px; left: 40%; }
+.cover-fallback .blob-a { width: 140px; height: 140px; background: rgba(255, 255, 255, 0.22); top: -30px; left: -20px; }
+.cover-fallback .blob-b { width: 110px; height: 110px; background: rgba(0, 0, 0, 0.28); bottom: -30px; right: -10px; }
+.cover-fallback .blob-c { width: 90px;  height: 90px;  background: rgba(255, 255, 255, 0.16); bottom: 10px; left: 40%; }
 .project-card:hover .cover-fallback .blob-a { transform: translate(10px, 10px) scale(1.1); }
 .project-card:hover .cover-fallback .blob-b { transform: translate(-8px, -8px) scale(1.1); }
 .fallback-icon {
@@ -686,7 +701,7 @@ onUnmounted(() => {
 .cover-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(15,15,35,0.28) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 62%, rgba(15, 15, 35, 0.42) 100%);
   pointer-events: none;
 }
 
@@ -710,18 +725,19 @@ onUnmounted(() => {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
-  color: #1a1a2e;
+  background: rgba(18, 18, 42, 0.72);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
   transform: translateY(8px);
   opacity: 0;
-  transition: transform 0.25s ease, opacity 0.25s ease, background 0.2s ease;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  transition: transform 0.25s ease, opacity 0.25s ease, background 0.2s ease, border-color 0.2s ease;
+  backdrop-filter: blur(8px);
 }
 .project-card:hover .overlay-btn { transform: translateY(0); opacity: 1; }
-.overlay-btn:hover { background: #6c63ff; color: #fff; }
+.overlay-btn:hover { background: #6c63ff; border-color: #6c63ff; color: #fff; }
 
 /* Body */
 .card-body {
@@ -866,29 +882,73 @@ onUnmounted(() => {
   .project-card { width: 300px; }
 }
 
-/* Mobile: single-card "peek" carousel + swipe. Arrows move off to the
-   sides of the content column instead of squeezing the card, and the
-   card width is a % of the available track so cardStep (measured live
-   in JS) always matches what's on screen — no more clipped edges. */
+/* Mobile: full-width card, swipe + dots — no edge fade or side arrows */
 @media (max-width: 640px) {
   .projects-section { padding: 56px 0 64px; }
   .section-inner { padding: 0 16px; }
   .section-header { margin-bottom: 28px; }
 
-  .carousel-wrapper { gap: 6px; }
-  .carousel-btn { width: 34px; height: 34px; flex-shrink: 0; }
-  .carousel-btn.prev { margin-right: 0; }
-  .carousel-btn.next { margin-left: 0; }
-  .carousel-btn svg { width: 16px; height: 16px; }
+  .carousel-wrapper { display: block; }
+  .carousel-btn { display: none; }
 
   .carousel-overflow {
-    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+    padding: 0 0 8px;
+    touch-action: pan-y pinch-zoom;
   }
 
-  .project-card { width: 82vw; max-width: 340px; touch-action: pan-y; }
+  .carousel-track { gap: 16px; }
+
+  .project-card {
+    width: 100%;
+    max-width: none;
+    touch-action: pan-y;
+    border-radius: 16px;
+  }
+
+  .project-card:hover { transform: none; }
+
+  .card-cover { aspect-ratio: 16 / 10; }
+  .card-cover img { object-position: center center; }
+
+  .cover-overlay {
+    opacity: 1;
+    background: linear-gradient(180deg, rgba(15, 15, 35, 0) 40%, rgba(15, 15, 35, 0.55) 100%);
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .overlay-btn {
+    opacity: 1;
+    transform: none;
+    width: 36px;
+    height: 36px;
+  }
+
   .card-body { padding: 16px 18px 18px; }
   .card-title { font-size: 16px; }
+  .card-desc { -webkit-line-clamp: 4; }
+  .view-all-btn { width: 100%; justify-content: center; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .cover-overlay {
+    opacity: 1;
+    background: linear-gradient(180deg, rgba(15, 15, 35, 0) 45%, rgba(15, 15, 35, 0.5) 100%);
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .overlay-btn {
+    opacity: 1;
+    transform: none;
+  }
+
+  .project-card:hover { transform: none; }
+  .project-card:hover .card-cover img { transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
